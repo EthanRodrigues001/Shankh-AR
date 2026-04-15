@@ -284,14 +284,21 @@ export default function ARPage() {
     mixerRef.current = mixer;
 
     // Always prefer the clip named exactly "wave"
-    const clip = clips.find((c: any) => c.name === "wave")
+    const rawClip = clips.find((c: any) => c.name === "wave")
       ?? clips.find((c: any) => /wave/i.test(c.name))
       ?? clips[0];
-    console.log(`▶ Playing: "${clip.name}" (${clip.duration.toFixed(2)}s, loop)`);
 
-    const action = mixer.clipAction(clip);
+    // Extract only frames 1–20, looping that window
+    // AnimationUtils.subclip(clip, name, startFrame, endFrame, fps)
+    // Detect fps from the clip's tracks (firstTrack.times gives seconds; fps = keys/duration approx)
+    const fps = 30; // Blender default export fps
+    const subClip = THREE.AnimationUtils.subclip(rawClip, "wave_loop", 1, 20, fps);
+    console.log(`▶ Playing: "${rawClip.name}" frames 1–20 @ ${fps}fps → ${subClip.duration.toFixed(3)}s/loop`);
+
+    const action = mixer.clipAction(subClip);
     action.setLoop(THREE.LoopRepeat, Infinity);
     action.clampWhenFinished = false;
+    action.timeScale = 0.6;  // slow down — 1.0 = normal, 0.5 = half speed
     action.play();
 
     const clock = new THREE.Clock();
@@ -306,7 +313,7 @@ export default function ARPage() {
     };
     animLoop();
 
-    console.log("✅ Animation loop started");
+    console.log("✅ Animation loop started (frames 1–20)");
   }
 
   function addManualWave(anchorEl: any) {
@@ -357,15 +364,14 @@ export default function ARPage() {
                 statusType === "err"
                   ? "#ff4f6d"
                   : statusType === "warn"
-                  ? "#f5c842"
-                  : "#00d4b4",
-              boxShadow: `0 0 8px ${
-                statusType === "err"
-                  ? "#ff4f6d"
-                  : statusType === "warn"
+                    ? "#f5c842"
+                    : "#00d4b4",
+              boxShadow: `0 0 8px ${statusType === "err"
+                ? "#ff4f6d"
+                : statusType === "warn"
                   ? "#f5c842"
                   : "#00d4b4"
-              }`,
+                }`,
             }}
           />
           <span style={styles.statusText}>{statusText}</span>
@@ -592,11 +598,11 @@ export default function ARPage() {
 }
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const INK    = "#080808";
-const WHITE  = "#f5f5f0";
+const INK = "#080808";
+const WHITE = "#f5f5f0";
 const ACCENT = "#C8FF00";    // electric lime — single sharp accent
 const BORDER = "rgba(255,255,255,0.09)";
-const TEAL   = "#00d4b4";    // kept for status dot only
+const TEAL = "#00d4b4";    // kept for status dot only
 
 const styles: Record<string, React.CSSProperties> = {
 
@@ -915,14 +921,22 @@ const styles: Record<string, React.CSSProperties> = {
     width: 28, height: 28,
     animation: "cornerPulse 2s ease-in-out infinite",
   },
-  cornerTL: { top: 0, left: 0,
-    borderTop: `2.5px solid ${ACCENT}`, borderLeft: `2.5px solid ${ACCENT}`, borderTopLeftRadius: 4 },
-  cornerTR: { top: 0, right: 0,
-    borderTop: `2.5px solid ${ACCENT}`, borderRight: `2.5px solid ${ACCENT}`, borderTopRightRadius: 4 },
-  cornerBL: { bottom: 0, left: 0,
-    borderBottom: `2.5px solid ${ACCENT}`, borderLeft: `2.5px solid ${ACCENT}`, borderBottomLeftRadius: 4 },
-  cornerBR: { bottom: 0, right: 0,
-    borderBottom: `2.5px solid ${ACCENT}`, borderRight: `2.5px solid ${ACCENT}`, borderBottomRightRadius: 4 },
+  cornerTL: {
+    top: 0, left: 0,
+    borderTop: `2.5px solid ${ACCENT}`, borderLeft: `2.5px solid ${ACCENT}`, borderTopLeftRadius: 4
+  },
+  cornerTR: {
+    top: 0, right: 0,
+    borderTop: `2.5px solid ${ACCENT}`, borderRight: `2.5px solid ${ACCENT}`, borderTopRightRadius: 4
+  },
+  cornerBL: {
+    bottom: 0, left: 0,
+    borderBottom: `2.5px solid ${ACCENT}`, borderLeft: `2.5px solid ${ACCENT}`, borderBottomLeftRadius: 4
+  },
+  cornerBR: {
+    bottom: 0, right: 0,
+    borderBottom: `2.5px solid ${ACCENT}`, borderRight: `2.5px solid ${ACCENT}`, borderBottomRightRadius: 4
+  },
   scanHint: {
     marginTop: 24,
     color: "rgba(255,255,255,0.45)",
