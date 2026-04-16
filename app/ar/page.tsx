@@ -245,9 +245,9 @@ export default function ARPage() {
 
     // Use A-Frame's built-in gltf-model component (handles loading natively)
     anchorEl.setAttribute("gltf-model", "/exported_model.glb");
-    anchorEl.setAttribute("position", "0 0 0.05");
-    anchorEl.setAttribute("rotation", "90 0 0");
-    anchorEl.setAttribute("scale", "2 2 2");
+    anchorEl.setAttribute("rotation", "90 0 0");     // flip: positive 90 instead of -90
+    anchorEl.setAttribute("position", "0 0.15 0");
+    anchorEl.setAttribute("scale", "0.5 0.5 0.5");
 
     anchorEl.addEventListener("model-loaded", (evt: any) => {
       // In A-Frame 1.5.0, evt.detail.model = gltfModel.scene (a THREE.Group).
